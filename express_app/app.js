@@ -4,6 +4,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs'); // ここに追加
 const bcrypt = require('bcryptjs');
 const { users, findUserByUsername, findUserById, addUser } = require('./users');
 const { ensureAuthenticated } = require('./auth');
