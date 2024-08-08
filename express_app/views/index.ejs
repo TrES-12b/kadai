@@ -2,32 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome, <%= user.username %>!</h1>
+    <!-- ユーザー名表示とログアウトリンク -->
+    <header>
+        <h1>Welcome, <%= user.username %></h1>
+        <a href="/logout">Logout</a>
+    </header>
 
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <button type="submit" class="btn btn-primary">Upload</button>
+    <!-- 画像アップロードフォーム -->
+    <main>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
         </form>
 
-        <div class="row mt-4">
+        <!-- 画像ギャラリー -->
+        <div class="gallery">
             <% images.forEach(image => { %>
-                <div class="col-md-2">
-                    <div class="card">
-                        <img src="<%= image %>" class="card-img-top">
-                        <div class="card-body">
-                            <form action="/delete/<%= image.split('/').pop() %>" method="post">
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        </div>
-                    </div>
+                <div class="image-container">
+                    <img src="<%= image %>" alt="Uploaded Image">
+                    <!-- 画像削除フォーム -->
+                    <form action="/delete/<%= image.split('/').pop() %>" method="POST">
+                        <button type="submit">Delete</button>
+                    </form>
                 </div>
             <% }) %>
         </div>
-    </div>
+    </main>
 </body>
 </html>

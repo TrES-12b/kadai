@@ -4,6 +4,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs'); // ここに追加
 const bcrypt = require('bcryptjs');
 const { users, findUserByUsername, findUserById, addUser } = require('./users');
 const { ensureAuthenticated } = require('./auth');
@@ -108,4 +109,13 @@ function getUploadedImages() {
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
+});
+
+app.get('/logout', (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        }
+        res.redirect('/login');
+    });
 });
