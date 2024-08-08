@@ -1,84 +1,111 @@
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const bcrypt = require('bcryptjs');
+const { users, findUserByUsername, findUserById, addUser } = require('./users');
+const { ensureAuthenticated } = require('./auth');
+
 const app = express();
 
-// セッションの設定
+// Configure session middleware
 app.use(session({
     secret: 'your_secret_key',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false
 }));
 
-// ボディパーサーの設定
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// 静的ファイルの提供
-app.use(express.static(path.join(__dirname, 'public')));
+passport.use(new LocalStrategy((username, password, done) => {
+    const user = findUserByUsername(username);
+    if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+    }
+    bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+            return done(null, user);
+        } else {
+            return done(null, false, { message: 'Incorrect password.' });
+        }
+    });
+}));
 
-// ユーザー管理（簡易的なメモリ内ストレージ）
-const users = {};
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
 
-// ログイン処理
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = users[username];
-    if (user && bcrypt.compareSync(password, user.password)) {
-        req.session.user = username;
-        res.redirect('/');
-    } else {
-        res.redirect('/login?error=invalid');
+passport.deserializeUser((id, done) => {
+    const user = findUserById(id);
+    done(null, user);
+});
+
+app.set('view engine', 'ejs');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 
-// 登録処理
+const upload = multer({ storage: storage });
+
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: false }));
+
+app.get('/', ensureAuthenticated, (req, res) => {
+    res.render('index', { user: req.user, images: getUploadedImages() });
+});
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: false
+}));
+
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
-    if (users[username]) {
-        return res.redirect('/register?error=exists');
-    }
     const hashedPassword = bcrypt.hashSync(password, 10);
-    users[username] = { username, password: hashedPassword };
+    addUser(username, hashedPassword);
     res.redirect('/login');
 });
 
-// ログアウト処理
-app.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/login');
+app.post('/upload', ensureAuthenticated, upload.single('file'), (req, res) => {
+    res.redirect('/');
+});
+
+app.post('/delete/:filename', ensureAuthenticated, (req, res) => {
+    const filepath = path.join(__dirname, 'public/uploads', req.params.filename);
+    fs.unlink(filepath, (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error deleting file');
+        } else {
+            res.redirect('/');
+        }
     });
 });
 
-// ログインページ
-app.get('/login', (req, res) => {
-    res.render('login', { error: req.query.error });
-});
-
-// 登録ページ
-app.get('/register', (req, res) => {
-    res.render('register', { error: req.query.error });
-});
-
-// 画像のアップロードと表示
-app.get('/', (req, res) => {
-    const uploadedImages = getUploadedImages();
-    res.render('index', { images: uploadedImages, user: req.session.user });
-});
-
-// アップロードされた画像を取得
 function getUploadedImages() {
-    const imageDir = path.join(__dirname, 'public/images');
-    if (!fs.existsSync(imageDir)) {
-        fs.mkdirSync(imageDir);
-    }
-    return fs.readdirSync(imageDir).map(filename => `/images/${filename}`);
+    const directoryPath = path.join(__dirname, 'public/uploads');
+    return fs.readdirSync(directoryPath).map(file => `/uploads/${file}`);
 }
 
-// サーバーの開始
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+    console.log('Server is running on port 3000');
 });

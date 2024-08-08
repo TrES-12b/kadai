@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ホーム</title>
-    <link rel="stylesheet" href="/styles.css">
+    <title>Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>アップロードされた画像</h1>
-        <% if (user) { %>
-            <p>ようこそ、<%= user %>さん！</p>
-            <a href="/logout" class="button">ログアウト</a>
-        <% } %>
-        <div class="gallery">
+        <h1>Welcome, <%= user.username %>!</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <div class="row mt-4">
             <% images.forEach(image => { %>
-                <div class="gallery-item">
-                    <a href="<%= image %>" target="_blank">
-                        <img src="<%= image %>" alt="Image">
-                    </a>
+                <div class="col-md-2">
+                    <div class="card">
+                        <img src="<%= image %>" class="card-img-top">
+                        <div class="card-body">
+                            <form action="/delete/<%= image.split('/').pop() %>" method="post">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             <% }) %>
         </div>
