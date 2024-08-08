@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像ギャラリー</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>画像ギャラリー</h1>
+  <div class="gallery">
+    <img src="/images/image1.jpg" alt="Image 1" class="thumbnail" onclick="showImage('/images/image1.jpg')">
+    <img src="/images/image2.jpg" alt="Image 2" class="thumbnail" onclick="showImage('/images/image2.jpg')">
+    <!-- 必要に応じて画像を追加 -->
+  </div>
+  <div id="full-size-container" class="full-size-container">
+    <img id="full-size-image" src="" alt="Full Size">
+  </div>
+  <script src="/script.js"></script>
+</body>
+</html>
