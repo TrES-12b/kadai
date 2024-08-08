@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像ギャラリー</title>
+    <title>ホーム</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>画像ギャラリー</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="image" required>
-            <button type="submit">アップロード</button>
-        </form>
-
-        <form action="/logout" method="post" style="margin-top: 20px;">
-            <button type="submit">ログアウト</button>
-        </form>
-
+        <h1>アップロードされた画像</h1>
+        <% if (user) { %>
+            <p>ようこそ、<%= user %>さん！</p>
+            <a href="/logout" class="button">ログアウト</a>
+        <% } %>
         <div class="gallery">
-            <% images.forEach(function(image) { %>
+            <% images.forEach(image => { %>
                 <div class="gallery-item">
-                    <img src="/images/<%= image.filename %>" alt="<%= image.filename %>" class="img-thumbnail">
-                    <form action="/delete/<%= image.filename %>" method="post" style="margin-top: 10px;">
-                        <button type="submit" class="delete-button">削除</button>
-                    </form>
+                    <a href="<%= image %>" target="_blank">
+                        <img src="<%= image %>" alt="Image">
+                    </a>
                 </div>
-            <% }); %>
+            <% }) %>
         </div>
     </div>
 </body>
