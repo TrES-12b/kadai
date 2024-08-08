@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, <%= user.username %>!</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <div class="row mt-4">
+            <% images.forEach(image => { %>
+                <div class="col-md-2">
+                    <div class="card">
+                        <img src="<%= image %>" class="card-img-top">
+                        <div class="card-body">
+                            <form action="/delete/<%= image.split('/').pop() %>" method="post">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</body>
+</html>
